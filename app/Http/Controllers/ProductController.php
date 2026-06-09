@@ -4,37 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use Illuminate\Http\Request;
 
-class ProductController extends Controller
+class ProductController
 {
     public function index()
     {
-        $products = Product::with('category')->get();
-        $categories = $this->buildTree();
-        return view('products.index', compact('products', 'categories'));
+        $categories = Category::all();
+        $products = Product::all();
+
+        return view('products.index', compact('categories', 'products'));
     }
 
     public function show($id)
     {
-        $product = Product::with('category')->findOrFail($id);
-        $categories = $this->buildTree();
-        return view('products.show', compact('product', 'categories'));
-    }
+        $categories = Category::all();
+        $currentCategory = Category::findOrFail($id);
+        $products = Product::where('category_id', $id)->get();
 
-    private function buildTree()
-    {
-        $all = Category::all();
-        $indexed = $all->keyBy('id');
-        $tree = collect();
-
-        foreach ($indexed as $cat) {
-            if (is_null($cat->parent_id)) {
-                $tree->push($cat);
-            } else {
-                $indexed[$cat->parent_id]->children_loaded[] = $cat;
-            }
-        }
-
-        return $tree;
+        return view('products.index', compact('categories', 'products', 'currentCategory'));
     }
 }

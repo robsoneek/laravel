@@ -7,7 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 
-class CartController extends Controller
+class CartController
 {
     public function index()
     {

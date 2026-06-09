@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 
-class CategoryController extends Controller
+class CategoryController
 {
     public function show($id)
     {
