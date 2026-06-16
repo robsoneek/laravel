@@ -3,19 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    public function index()
-    {
-        $products = Product::with('category')->get();
-        return view('admin.index', compact('products'));
-    }
-
     public function create()
     {
         $categories = Category::all();
@@ -25,10 +19,10 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'        => 'required|string|max:255',
+            'name'        => 'required|string|max:500',
             'price'       => 'required|numeric|min:0',
             'quantity'    => 'required|integer|min:0',
-            'description' => 'required|string',
+            'description' => 'nullable|string|max:500',
             'category_id' => 'required|exists:categories,id',
             'image'       => 'nullable|image|max:2048',
         ]);
@@ -38,7 +32,7 @@ class ProductController extends Controller
         }
 
         Product::create($data);
-        return redirect()->route('admin.index')->with('success', 'Product created.');
+        return redirect()->route('admin.index');
     }
 
     public function edit($id)
@@ -53,10 +47,10 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:255',
+            'name'        => 'required|string|max:500',
             'price'       => 'required|numeric|min:0',
             'quantity'    => 'required|integer|min:0',
-            'description' => 'required|string',
+            'description' => 'nullable|string|max:500',
             'category_id' => 'required|exists:categories,id',
             'image'       => 'nullable|image|max:2048',
         ]);
@@ -66,19 +60,11 @@ class ProductController extends Controller
                 Storage::disk('public')->delete($product->image);
             }
             $data['image'] = $request->file('image')->store('products', 'public');
+        } else {
+            unset($data['image']);
         }
 
         $product->update($data);
-        return redirect()->route('admin.index')->with('success', 'Product updated.');
-    }
-
-    public function destroy($id)
-    {
-        $product = Product::findOrFail($id);
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-        }
-        $product->delete();
-        return redirect()->route('admin.index')->with('success', 'Product deleted.');
+        return redirect()->route('admin.index');
     }
 }

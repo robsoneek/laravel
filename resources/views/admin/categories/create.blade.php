@@ -1,32 +1,52 @@
-@extends('layouts.app')
+@extends('layouts.main')
+
+@section('title', 'Přidat kategorii')
 
 @section('content')
-    <a href="{{ route('admin.index') }}" class="btn btn-outline-secondary mb-4">← Back to admin</a>
-
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card bg-secondary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Add Category</h5>
-                    <form method="POST" action="{{ route('admin.categories.store') }}">
-                        @csrf
-                        <div class="form-group">
-                            <label>Name</label>
-                            <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name') }}">
-                        </div>
-                        <div class="form-group">
-                            <label>Parent Category</label>
-                            <select name="parent_id" class="form-control form-control-sm">
-                                <option value="">None (root category)</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-light btn-block">Add Category</button>
-                    </form>
-                </div>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">Přidat kategorii</h2>
+        <form method="POST" action="{{ route('admin.categories.store') }}">
+            @csrf
+            <div class="mb-3">
+                <label class="form-label">Název</label>
+                <input type="text" name="name" class="form-control" value="{{ old('name') }}" required maxlength="45">
             </div>
-        </div>
+            <div class="mb-3">
+                <label class="form-label">Nadřazená kategorie (volitelné)</label>
+                <select name="parent_id" class="form-select">
+                    <option value="">— Žádná (kořenová kategorie) —</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->id }}" {{ old('parent_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">Uložit</button>
+                <a href="{{ route('admin.index') }}" class="btn btn-secondary">Zrušit</a>
+            </div>
+        </form>
+
+        @if($categories->count())
+            <hr>
+            <h5>Existující kategorie</h5>
+            <ul class="list-group">
+                @foreach($categories as $cat)
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ $cat->name }}
+                        @if($cat->parent_id)
+                            <small class="text-muted">podkategorie</small>
+                        @endif
+                        <form method="POST" action="{{ route('admin.categories.destroy', $cat->id) }}"
+                              onsubmit="return confirm('Smazat kategorii {{ $cat->name }}?')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn btn-danger btn-sm">Smazat</button>
+                        </form>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
     </div>
+</div>
 @endsection

@@ -1,29 +1,46 @@
-@extends('layouts.shop')
+@extends('layouts.main')
+
+@section('title', 'Všechny produkty')
 
 @section('content')
-    <h1 class="text-3xl font-bold mb-6">
-        {{ isset($currentCategory) ? 'Category: ' . $currentCategory->name : 'All products' }}
-    </h1>
+<h1 class="mb-4">Všechny produkty</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+@if($products->isEmpty())
+    <p class="text-muted">Žádné produkty nenalezeny.</p>
+@else
+    <div class="row row-cols-1 row-cols-md-3 g-4">
         @foreach($products as $product)
-            <div class="bg-white rounded-lg shadow p-4 flex flex-col justify-between">
-                <div>
-                    <h2 class="text-xl font-bold mb-2">{{ $product->name }}</h2>
-                    <p class="text-gray-600 text-sm mb-4">{{ $product->description ?? 'No description' }}</p>
-                </div>
-
-                <div class="flex justify-between items-center mt-4">
-                    <span class="text-lg font-bold text-blue-600">{{ number_format($product->price, 2, ',', ' ') }} Kč</span>
-
-                    <form action="{{ route('cart.add', $product->product_id) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                            Add to cart
-                        </button>
-                    </form>
+            <div class="col">
+                <div class="card h-100">
+                    @if($product->image)
+                        <img src="{{ asset('storage/' . $product->image) }}" class="card-img-top" alt="{{ $product->name }}" style="height:200px;object-fit:cover">
+                    @else
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="height:200px">
+                            <span class="text-muted">Bez obrázku</span>
+                        </div>
+                    @endif
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ route('product.show', $product->id) }}" class="text-decoration-none">{{ $product->name }}</a>
+                        </h5>
+                        <span class="badge bg-secondary mb-2">{{ $product->category->name ?? 'Bez kategorie' }}</span>
+                        <p class="card-text fw-bold">{{ number_format($product->price, 2, ',', ' ') }} Kč</p>
+                        <p class="card-text text-muted small">Skladem: {{ $product->quantity }} ks</p>
+                    </div>
+                    <div class="card-footer d-flex gap-2">
+                        <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary btn-sm">Detail</a>
+                        @if($product->quantity > 0)
+                            <form method="POST" action="{{ route('cart.add', $product->id) }}">
+                                @csrf
+                                <button class="btn btn-success btn-sm">+ Košík</button>
+                            </form>
+                        @else
+                            <span class="btn btn-secondary btn-sm disabled">Vyprodáno</span>
+                        @endif
+                    </div>
                 </div>
             </div>
         @endforeach
     </div>
+@endif
 @endsection

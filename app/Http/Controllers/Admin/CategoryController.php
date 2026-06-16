@@ -16,22 +16,22 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name'      => 'required|string|max:255',
+        $data = $request->validate([
+            'name'      => 'required|string|max:45',
             'parent_id' => 'nullable|exists:categories,id',
         ]);
 
-        Category::create([
-            'name'      => $request->name,
-            'parent_id' => $request->parent_id ?: null,
-        ]);
-
-        return redirect()->route('admin.index')->with('success', 'Category created.');
+        Category::create($data);
+        return redirect()->route('admin.index');
     }
 
     public function destroy($id)
     {
         Category::findOrFail($id)->delete();
-        return redirect()->route('admin.index')->with('success', 'Category deleted.');
+        return redirect()->route('admin.index');
+    }
+
+    public function edit($id){
+
     }
 }

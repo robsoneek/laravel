@@ -4,31 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Http\Request;
 
-class CategoryController
+class CategoryController extends Controller
 {
-    public function show($id)
+    public function show($id, Request $request)
     {
         $category = Category::findOrFail($id);
-        $products = Product::with('category')->where('category_id', $id)->get();
-        $categories = $this->buildTree();
-        return view('categories.show', compact('category', 'products', 'categories'));
+
+        $sortColumn = in_array($request->sort, ['name', 'price', 'quantity']) ? $request->sort : 'name';
+        $sortDir = $request->dir === 'desc' ? 'desc' : 'asc';
+
+        $categoryIds = $this->getAllDescendantIds(Category::all(), (int) $id);
+
+        $products = Product::with('category')
+            ->whereIn('category_id', $categoryIds)
+            ->orderBy($sortColumn, $sortDir)
+            ->get();
+
+        return view('categories.show', compact('category', 'products', 'sortColumn', 'sortDir'));
     }
 
-    private function buildTree()
+    private function getAllDescendantIds($all, $parentId)
     {
-        $all = Category::all();
-        $indexed = $all->keyBy('id');
-        $tree = collect();
-
-        foreach ($indexed as $cat) {
-            if (is_null($cat->parent_id)) {
-                $tree->push($cat);
-            } else {
-                $indexed[$cat->parent_id]->children_loaded[] = $cat;
-            }
+        $ids = [$parentId];
+        foreach ($all->where('parent_id', $parentId) as $child) {
+            $ids = array_merge($ids, $this->getAllDescendantIds($all, $child->id));
         }
-
-        return $tree;
+        return $ids;
     }
 }
